@@ -1,0 +1,106 @@
+{
+  "Students":[
+    {
+    "id":1,
+    "name":"Rahil",
+    "course":"cpp",
+    "fees":10000,
+    "status":"complete",
+    "pendingfees":"NA",
+    "lasttransaction":"11-08-2023"
+
+  },
+  {
+    "id":2,
+    "name":"Ryle",
+    "course":"java",
+    "fees":20000,
+    "status":"complete",
+    "pendingfees":"NA",
+    "lasttransaction":"01-10-2023"
+
+  },
+  {
+      "id":3,
+      "name":"Roy",
+      "course":"cpp",
+      "fees":10000,
+      "status":"Incomplete",
+      "pendingfees":"5000",
+      "lasttransaction":"31-02-2023"
+  },
+  {
+    "id":4,
+    "name":"Ranbir",
+    "course":"java",
+    "fees":20000,
+    "status":"complete",
+    "pendingfees":"NA",
+    "lasttransaction":"31-02-2023"
+},
+{
+  "id":5,
+  "name":"Raguveer",
+  "course":"java",
+  "fees":20000,
+  "status":"complete",
+  "pendingfees":"NA",
+  "lasttransaction":"1-02-2023"
+},
+{
+  "id":6,
+  "name":"Ranjit",
+  "course":"java",
+  "fees":20000,
+  "status":"complete",
+  "pendingfees":"NA",
+  "lasttransaction":"4-09-2022"
+},
+{
+  "id":7,
+  "name":"Ritkvik",
+  "course":"java",
+  "fees":20000,
+  "status":"complete",
+  "pendingfees":"NA",
+  "lasttransaction":"3-02-2022"
+},
+{
+  "id":8,
+  "name":"Rishi",
+  "course":"java",
+  "fees":20000,
+  "status":"complete",
+  "pendingfees":"NA",
+  "lasttransaction":"8-12-2023"
+},
+{
+  "id":9,
+  "name":"Rohan",
+  "course":"java",
+  "fees":20000,
+  "status":"complete",
+  "pendingfees":"NA",
+  "lasttransaction":"24-02-2023"
+},
+{
+  "id":10,
+  "name":"Ram",
+  "course":"java",
+  "fees":20000,
+  "status":"complete",
+  "pendingfees":"NA",
+  "lasttransaction":"6-10-2023"
+},
+{
+  "id":11,
+  "name":"rajesh",
+  "course":"java",
+  "fees":20000,
+  "status":"complete",
+  "pendingfees":"NA",
+  "lasttransaction":"1-04-2022"
+}
+]
+}
+
