@@ -7,6 +7,7 @@ import Feeinfo from "./Feesinfo";
 import Home from "./Home"
 import Admissioninfo from "./Admissioninfo"
 import NavDropdown from 'react-bootstrap/NavDropdown';
+import Search from "./Search";
 
 export const NavBar = () => {
 

@@ -1,281 +1,246 @@
-import React from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import axios from 'axios';
-import {
-    MDBTable, 
-    MDBTableHead, 
-    MDBTableBody, 
-    MDBRow, 
-    MDBCol, 
-    MDBContainer,
-    MDBBtn,
-    MDBBtnGroup,
-    MDBPagination,
-    MDBPaginationItem,
-    MDBPaginationLink
-} from "mdb-react-ui-kit";
-import {useEffect,useState}  from 'react';
+import React, {useState, useEffect} from 'react';
+import fireDb from "../firebase";
+import {Link, useNavigate, useLocation } from "react-router-dom";
+import "./Feesinfo.css";
 
-const Feesinfo =()=>{
-
-    const[data,setData]=useState([]);
-    const[value,setvalue]=useState("");
-    const[sortValue,setSortValue]=useState("");
+const Feesinfo = () => {
+    const [data, setData] = useState({});
+    const[search,setSearch]=useState("");
+    const [sortedData, setSortedData] = useState([]);
+    const [sort, setSort] = useState(false);
     const[currentPage,setCurrentPage]=useState(0);
     const[pageLimit]=useState(10);
     const[sortFilterValue, setSortFilterValue]=useState("");
     const[operation, setOperation]=useState("");
 
-    const sortOptions = [ "name","id","status","course","pendingfees"];
+    const navigate = useNavigate();
 
-    useEffect(()=>
-    {
-        loadUserData(0, 10, 0);
+
+    useEffect(() => {
+        fireDb.child("students").on("value", (snapshot) => {
+            if(snapshot.val()!==null) {
+                setData( {...snapshot.val() });
+            } else {
+                setData({});
+            }
+        });
+        return () => {
+            setData({});
+        };
     },[]);
 
-    const loadUserData = async (start, end, increase, optType=null, filterOrSortValue) => {
-        switch (optType) {
-            case "search":
-                setOperation(optType);
-                setSortValue("");
-                return await axios
-                .get(`http://localhost:5000/Students?q=${value}&_start=${start}&_end=${end}`)
-                .then((response) => {
-                setData(response.data);
-                setCurrentPage(currentPage + increase);
-            })
-            .catch((err) => console.log(err));
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     navigate(`/search?name=${search}`)
+    //     setSearch("");
+    // }
 
-            case "sort":
-                setOperation(optType);
-                setSortFilterValue(filterOrSortValue);
-                return await axios
-                .get(`http://localhost:5000/Students?_sort=${filterOrSortValue}&_order=asc&_start=${start}&_end=${end}`)
-                .then((response) => {
-                setData(response.data);
-                setCurrentPage(currentPage + increase);
-                })
-                .catch((err) => console.log(err));
+    // const renderPagination = () => {
+    //     if(data.length < 10 && currentPage === 0) return null;
+    //     if(currentPage == 0){
+    //         return(
+                
+    //         );
+    // }
 
-            case "filter":
-                setOperation(optType);
-                setSortFilterValue(filterOrSortValue);
-                return await axios
-                .get(`http://localhost:5000/Students?status=${filterOrSortValue}&_order=asc&_start=${start}&_end=${end}`)
-                .then((response) => {
-                setData(response.data);
-                setCurrentPage(currentPage + increase);
-                })
-                .catch((err) => console.log(err));
-
-            default:
-                return await axios
-                .get(`http://localhost:5000/Students?_start=${start}&_end=${end}`)
-                .then((response) => {
-                setData(response.data);
-                setCurrentPage(currentPage + increase);
-                })
-                .catch((err) => console.log(err));
-        }
+    const handleChange = (e) => {
+        setSort(true);
+        fireDb.child("students").orderByChild(`${e.target.value}`).on("value", (snapshot) => {
+            let sortedData = [];
+            snapshot.forEach((snap) => {
+                sortedData.push(snap.val())
+            });
+            setSortedData(sortedData);
+        });
     };
- 
-    // console.log("data", data);
 
-    const handleReset =() => {
-        setOperation("");
-        setvalue("");
-        setSortFilterValue("");
-        setSortValue("");
-        loadUserData(0,10,0);
+    const handleReset = () => {
+        setSort(false);
+        setSearch("");
+        fireDb.child("students").on("value", (snapshot) => {
+            if(snapshot.val()!==null) {
+                setData( {...snapshot.val() });
+            } else {
+                setData({});
+            }
+        });
     };
-    const handleSearch = async (e) => {
+
+    const useQuery = () => {
+        return new URLSearchParams(useLocation().search);
+    }
+
+    let query = useQuery();
+    // let Search = query.get("fname");
+    console.log("search",search);
+
+    const handleSearch = (e) => {
         e.preventDefault();
-        loadUserData(0,10,0,"search");
-        // return await axios
-        // .get(`http://localhost:5000/Students?q=${value}`)
-        // .then((response) => {
-        //     setData(response.data);
-        //     setvalue("");
-        // })
-        // .catch((err) => console.log(err));
-    };
-    const handleSort = async (e) => {
-        let value = e.target.value;
-        setSortValue(value);
-        loadUserData(0,10,0,"sort", value);
-        // return await axios
-        // .get(`http://localhost:5000/Students?_sort=${value}&_order=asc`)
-        // .then((response) => {
-        //     setData(response.data);
-        // })
-        // .catch((err) => console.log(err));
-    };
-    const handleFilter = async (value) => {
-        loadUserData(0,10,0,"filter", value);
-        // return await axios
-        // .get(`http://localhost:5000/Students?status=${value}`)
-        // .then((response) => {
-        //     setData(response.data);
-        // })
-        // .catch((err) => console.log(err));
+        fireDb.child("students").orderByChild("fname").equalTo(search).on("value", (snapshot) => {
+            if(snapshot.val()) {
+                const data= snapshot.val();
+                setData(data);
+            }
+        })
+    }
+
+    const handelfilter = (value) => {
+        fireDb.child("students").orderByChild("fname").equalTo(value).on("value", (snapshot) => {
+            if(snapshot.val()) {
+                const data = snapshot.val();
+                setData(data);
+            }
+        });
     };
 
-    const renderPagination = () =>{
-        if(data.length < 10 && currentPage ===0) return null;
-        if(currentPage == 0){
-            return(
-                <MDBPagination className='mb-0'>
-                    <MDBPaginationItem>
-                        <MDBPaginationLink>1</MDBPaginationLink>
-                    </MDBPaginationItem>
-                    <MDBPaginationItem>
-                        <MDBBtn onClick={() => loadUserData(10, 20, 1, operation , sortFilterValue)}>
-                            Next
-                        </MDBBtn>
-                    </MDBPaginationItem>
-                </MDBPagination>
-            );
-        }
-        else if(currentPage < pageLimit -1 && data.length === pageLimit){
-            return(
-                <MDBPagination className='mb-0'>
-                    <MDBPaginationItem>
-                    <MDBPaginationItem>
-                        <MDBBtn onClick={() => loadUserData((currentPage-1) * 10, (currentPage) * 10, -1, operation, sortFilterValue)}>Prev
-                        
-                        </MDBBtn>
-                    </MDBPaginationItem>
-                    <MDBPaginationItem>
-                    <MDBPaginationLink>{currentPage + 1}</MDBPaginationLink>
-                    </MDBPaginationItem>
-                    </MDBPaginationItem>
-                    <MDBPaginationItem>
-                        <MDBBtn onClick={() => loadUserData((currentPage + 1) * 10, (currentPage + 2) * 10, 1, operation, sortFilterValue)}>
-                            Next
-                        </MDBBtn>
-                    </MDBPaginationItem>
-                </MDBPagination>
-            )
-        }else{
-            return(
-                <MDBPagination className='mb-0'>
-                    <MDBPaginationItem>
-                        <MDBBtn onClick={() => loadUserData((currentPage-1) * 10, (currentPage) * 10, -1, operation,sortFilterValue)}>
-                            Prev
-                        </MDBBtn>
-                    </MDBPaginationItem>
-                    <MDBPaginationItem>
-                        <MDBPaginationLink>{currentPage + 1}</MDBPaginationLink>
-                    </MDBPaginationItem>
-                </MDBPagination>
-            );
-        }
-    };
+
     return(
-        <>
-        <MDBContainer>
-            <form style={{
+        <div style={{marginTop: "100px"}}>
+            <div>
+                <form style={{
                 margin: "auto",
                 padding: "15 px",
                 maxWidth: "400px",
                 alignContent: "center",
                 }}
-                className='d-flex input-group w-auto'
-                onSubmit={handleSearch}
-                >
-                <input
-                type="text"
-                className='form-control'
-                placeholder='search id'
-                value={value}
-                onChange={(e)=> setvalue(e.target.value)}
-                />&nbsp;&nbsp;
-                <span>
-                {/* <MDBBtnGroup> */}
-                    <MDBBtn type="submit" color="dark">
-                        Search
-                    </MDBBtn>
+                onSubmit={ handleSearch }>
+                    <input 
+                    type="text"
+                    className='inputField'
+                    placeholder='Search Name ...'
+                    onChange={(e) => setSearch(e.target.value)}
+                    value={search}
+                    />
+                    <span>
+                    <button type="submit" className='btn btn-search'
+                    style={{
+                    alignContent: "center",
+                    margin: "auto",
+                    }}
+                    >
+                    Search
+                    </button>
                     </span>
                     <span>
-                    <MDBBtn className='mx-2' color='info' onClick={()=> handleReset()}>
-                        Reset
-                    </MDBBtn>
+                    <button className='btn btn-reset' onClick={()=> handleReset()}
+                    style={{
+                        alignContent: "right",
+                        margin: "auto",
+                        }}
+                    >
+                    Reset
+                    </button>
                     </span>
-                {/* </MDBBtnGroup> */}
-            </form>
-            <div style={{marginTop: "100px"}}>
-                <h2 className='text-center'>Fees Information</h2>
-                <MDBRow>
-                    <MDBCol size="12">
-                        <MDBTable>
-                            <MDBTableHead dark>
-                            <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">NAME</th>
-                                <th scope="col">COURSE</th>
-                                <th scope="col">FEES</th>
-                                <th scope="col">STATUS</th>
-                                <th scope="col">PENDING FEES</th>
-                                <th scope="col">LAST TRANSACTION</th>
+                </form>
+                    
+                <br/>
+            </div>
+            <>
+            {Object.keys(data).length == 0 ? (
+                <h2> NO Data Found: {query.get("fname")} </h2>
+                ) : (
+            <table className='style-table'>
+                <thead>
+                    <tr>
+                        <th style={{textAlign: "center"}}>Sr. No</th>
+                        <th style={{textAlign: "center"}}>First Name</th>
+                        <th style={{textAlign: "center"}}>Last Name</th>
+                        <th style={{textAlign: "center"}}>Course</th>
+                        <th style={{textAlign: "center"}}>Email</th>
+                        <th style={{textAlign: "center"}}>Phone</th>
+                        <th style={{textAlign: "center"}}>Fees</th>
+                        <th style={{textAlign: "center"}}>Status</th>
+                        <th style={{textAlign: "center"}}>Pending Fees</th>
+                        <th style={{textAlign: "center"}}>Last Transaction</th>
+                    </tr>
+                </thead>
+                {!sort && (
+                    <tbody>
+                    {Object.keys(data).map((id, index) => {
+                        //console.log("hello");
+                        return(
+                            <tr key={id}>
+                            <th scope="row">{index+1}</th>
+                            <td>{data[id].fname}</td>
+                            <td>{data[id].lname}</td>
+                            <td>{data[id].appliedcourse}</td>
+                            <td>{data[id].email}</td>
+                            <td>{data[id].phone}</td>
+                            <td>{data[id].fname}</td>
+                            <td>{data[id].fname}</td>
+                            <td>{data[id].fname}</td>
+                            <td>{data[id].fname}</td>
                             </tr>
-                            </MDBTableHead>
-                            {data.length === 0 ? (
-                                <MDBTableBody>
-                                    <tr>
-                                        <td colSpan={8} className='text-center mb-0'>No Data Found</td>
-                                    </tr>
-                                </MDBTableBody>
-                            ):(
-                                data.map((item) => (
-                                <MDBTableBody key={item.id}>
-                                    <tr>
-                                    <td>{item.id}</td>
-                                    <td >{item.name}</td>
-                                    <td >{item.course}</td>
-                                    <td >{item.fees}</td>
-                                    <td >{item.status}</td>
-                                    <td >{item.pendingfees}</td>
-                                    <td >{item.lasttransaction}</td>
-                                    </tr>
-                                </MDBTableBody>
-                                ))
-                            )}
-                        </MDBTable>
-                    </MDBCol>
-                </MDBRow>
-                <div style={{
+                        );
+                    })}
+                </tbody>
+                )}
+                {sort && (
+                    <tbody>
+                        {sortedData.map((item, index) => {
+                            return(
+                                <tr key={index}>
+                                <th scope="row">{index+1}</th>
+                                <td>{item.fname}</td>
+                                <td>{item.lname}</td>
+                                <td>{item.appliedcourse}</td>
+                                <td>{item.email}</td>
+                                <td>{item.phone}</td>
+                                <td>{item.fname}</td>
+                                <td>{item.fname}</td>
+                                <td>{item.fname}</td>
+                                <td>{item.fname}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                )}
+            </table>
+            )}
+            </>
+            {/* <div style={{
                 margin: "auto",
                 padding: "15 px",
                 maxWidth: "200px",
                 alignContent: "center",
                 }}>
                     {renderPagination()}
-                </div>
+            </div> */}
+            <br/>
+            <div>
+                <table style={{marginTop: "50px",margin: "auto"}}>
+                <tr>
+                    <td size="14">
+                    <label>Sort By:</label>
+                    <select style={{ width: "100%", borderRadius:"2px",height:"35px"}}
+                     className='dropdown' name="colValue" onChange={handleChange}>
+                        <option>Please Select</option>
+                        <option value="fname">First Name</option>
+                        <option value="lname">Last Name</option>
+                        <option value="courseapplied">Course</option>
+                        <option value="email">Email</option>
+                        <option value="phone">Phone</option>
+                        <option value="fname">Fees</option>
+                        <option value="fname">Status</option>
+                        <option value="fname">Pending Fees</option>
+                    </select>
+                    </td>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <td size="8">
+                    <label>Filter Status By:</label>
+                    <button className='btn btn-complete' onClick={() => handelfilter("Complete")}>
+                            Complete
+                        </button>
+                    <button className='btn btn-Incomplete' onClick={() => handelfilter("InComplete")}>
+                            Incomplete
+                        </button>
+                    </td>
+                </tr>
+                </table>
             </div>
-            {data.length > 0 && (
-                <MDBRow>
-                <MDBCol size="8"><h5>Sort By:</h5>
-                <select style={{ width: "50%", borderRadius:"2px",height:"35px"}}
-                onChange={handleSort}
-                value={sortValue}
-                >
-                    <option>Please Select Value</option>
-                    {sortOptions.map((item)=>(
-                        <option value={item} key={item.id}>{item}</option>
-                    ))}
-                </select> 
-                </MDBCol>
-                <MDBCol size="4"><h5>Filter by Status:</h5>  
-                <MDBBtnGroup>
-                    <MDBBtn color="sucess" onClick={() => handleFilter("complete")}>Complete</MDBBtn>
-                    <MDBBtn color="danger" style={{marginLeft: "2px"}} onClick={() => handleFilter("Incomplete")}>Incomplete</MDBBtn>
-                </MDBBtnGroup>
-                </MDBCol>
-            </MDBRow>
-            )}
-        </MDBContainer>
-        </>
+        </div>
     );
-}
 
-export default Feesinfo;
+};
+ export default Feesinfo;
